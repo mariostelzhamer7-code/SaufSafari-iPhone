@@ -224,6 +224,126 @@ const baseHandle14=handle;
 handle=function(action,el){switch(action){case 'skipPlayer14':skipPlayer();return;case 'duelStart14':duelStart();return;case 'duelWinner14':duelWinner(el.dataset.id);return;case 'voteStart14':voteStart();return;case 'voteFor14':voteFor(el.dataset.id);return;case 'votePass14':voteFor(null);return;case 'voteFinish14':if(state.vote14&&state.vote14.index===state.vote14.voters.length)openDistribute('vote');return;default:return baseHandle14(action,el);}};
 // Refresh incompatible active card 240 after an app update, without losing turn or statistics.
 if(state.current?.type==='normal'&&state.current.id===240&&!state.current.closed&&curActor()?.gender!=='w')differentCard();
+// HEIGHT_MODAL_143: Fixe 2 bzw. 3 Schlucke JE betroffener Person, auch bei mehreren Spielern.
+const budgetBeforeHeight143=getBudget;
+getBudget=function(){return isHeight143()?HEIGHT_RATE_143[state.current.id]:budgetBeforeHeight143();};
+const distributionBeforeHeight143=openDistribute;
+openDistribute=function(outcome){
+  if(!isHeight143())return distributionBeforeHeight143(outcome);
+  if(state.current?.closed)return;
+  stopTimer();silence();
+  state.stage='distribution';state.modal=true;state.modalKind14='height143';
+  state.heightChoices143={top:null,bottom:null,multi:[]};
+  state.outcome=outcome;save();renderModal();
+};
+function heightPlayerAllowed143(role,p){
+  if(!p||p.active===false)return false;
+  const id=state.current?.id;
+  if(id===956&&role==='top')return p.gender==='m';
+  if(id===956&&role==='bottom')return p.gender==='w';
+  if(id===954)return p.gender==='m';
+  if(id===955)return p.gender==='w';
+  return true;
+}
+function heightSelect143(role,id){
+  if(!isHeight143()||!state.modal||state.modalKind14!=='height143'||state.current.closed)return;
+  const p=findPlayer(id);
+  if(!heightPlayerAllowed143(role,p)||!active().some(x=>x.id===id))return;
+  const selected=state.heightChoices143;
+  if(role==='multi'){
+    selected.multi=selected.multi.includes(id)?selected.multi.filter(x=>x!==id):[...selected.multi,id];
+  }else if(role==='top'||role==='bottom'){
+    if(selected[role]===id)selected[role]=null;
+    else if(selected[role==='top'?'bottom':'top']!==id)selected[role]=id;
+  }else return;
+  save();renderModal();
+}
+function heightSelectedIds143(){
+  const id=state.current?.id,choice=state.heightChoices143||{};
+  if(id===951)return choice.top?[choice.top]:[];
+  if(id===952)return choice.bottom?[choice.bottom]:[];
+  if(id===953||id===956)return choice.top&&choice.bottom&&choice.top!==choice.bottom?[choice.top,choice.bottom]:[];
+  return Array.isArray(choice.multi)?[...new Set(choice.multi)]:[];
+}
+function heightReady143(){
+  const id=state.current?.id,n=heightSelectedIds143().length;
+  return id===951||id===952?n===1:id===953||id===956?n===2:true;
+}
+function heightConfirm143(){
+  if(!isHeight143()||!state.modal||state.modalKind14!=='height143'||state.current.closed||!heightReady143())return;
+  const ids=heightSelectedIds143(),cardId=state.current.id;
+  const choices=state.heightChoices143||{};
+  if(ids.some(id=>!active().some(p=>p.id===id)))return;
+  if((cardId===954&&ids.some(id=>findPlayer(id)?.gender!=='m'))||
+     (cardId===955&&ids.some(id=>findPlayer(id)?.gender!=='w'))||
+     (cardId===956&&(findPlayer(choices.top)?.gender!=='m'||findPlayer(choices.bottom)?.gender!=='w')))return;
+  const count=HEIGHT_RATE_143[cardId],sips={};
+  for(const id of ids){
+    sips[id]=count;
+    const old=state.stats[id]||{received:0};
+    old.received=Math.max(0,(+old.received||0))+count;
+    state.stats[id]=old;
+  }
+  state.history.push({card:state.current.cardKey,actor:state.current.personId,at:Date.now(),sips,result:'height',heightCard:cardId});
+  state.current.closed=true;state.modal=false;state.modalKind14=null;
+  state.heightChoices143=null;state.stage='card';save();render();
+}
+const renderModalBeforeHeight143=renderModal;
+renderModal=function(){
+  if(!isHeight143()||!state.modal||state.modalKind14!=='height143')return renderModalBeforeHeight143();
+  document.body.classList.add('modal-open');
+  const id=state.current.id,choice=state.heightChoices143||{top:null,bottom:null,multi:[]},players=active();
+  const row=function(title,role,list){
+    let h='<h3 class="height-head143">'+esc(title)+'</h3><div class="allocate-list">';
+    for(const player of list){
+      const on=role==='multi'?choice.multi?.includes(player.id):choice[role]===player.id;
+      h+='<div class="allocate-row"><span class="allocate-name">'+esc(player.name)+'</span>'+
+         '<button type="button" class="round-btn winner-select'+(on?' height-chosen143':'')+
+         '" data-action="heightPick143" data-role="'+role+'" data-id="'+esc(player.id)+
+         '" aria-pressed="'+(on?'true':'false')+'">'+(on?'✓':'○')+'</button></div>';
+    }
+    return h+'</div>';
+  };
+  let controls='';
+  if(id===951)controls=row(t('heightTall143'),'top',players);
+  else if(id===952)controls=row(t('heightShort143'),'bottom',players);
+  else if(id===953)controls=row(t('heightTall143'),'top',players)+row(t('heightShort143'),'bottom',players);
+  else if(id===956)controls=row(t('heightTallMan143'),'top',players.filter(p=>p.gender==='m'))+
+                                row(t('heightShortWoman143'),'bottom',players.filter(p=>p.gender==='w'));
+  else {
+    let eligible=players.filter(p=>heightPlayerAllowed143('multi',p));
+    controls=row(t('heightAll143'),'multi',eligible)+
+        '<p class="modal-note">'+t('heightNone143')+'</p>';
+  }
+  const per=HEIGHT_RATE_143[id],unit=state.lang==='en'?'sips':'Schlucke';
+  const allocation='<p class="modal-note">🍻 '+per+' '+unit+
+      ([951,952].includes(id)?'':' '+t('heightEach143'))+'</p>';
+  const confirm=btn(t('heightSave143'),'heightConfirm143','primary',heightReady143()?'':'disabled');
+  $('modal-root').innerHTML=popup(t('heightTitle143'),t('heightInfo143'),controls+allocation+confirm);
+};
+const renderGameBeforeHeight143=renderGame;
+renderGame=function(){
+  let html=renderGameBeforeHeight143();
+  if(!isHeight143())return html;
+  const id=state.current.id,unit=state.lang==='en'?'sips':'Schlucke';
+  const hint='🍻 '+HEIGHT_RATE_143[id]+' '+unit+([951,952].includes(id)?'':' '+t('heightEach143'));
+  html=html.replace(/<div class="sip-hint">[^<]*<\/div>/,'<div class="sip-hint">'+hint+'</div>');
+  if(!state.current.closed)html=html.replace(/<div class="btn-row choice-row">[\s\S]*?<\/div>/,
+    btn(t('heightSelect143'),'heightStart143','primary'));
+  return html;
+};
+const handleBeforeHeight143=handle;
+handle=function(action,el){
+  if(action==='heightStart143'){if(isHeight143()&&!state.current.closed)openDistribute('height');return;}
+  if(action==='heightPick143'){heightSelect143(el.dataset.role,el.dataset.id);return;}
+  if(action==='heightConfirm143'){heightConfirm143();return;}
+  return handleBeforeHeight143(action,el);
+};
+const heightStyle143=document.createElement('style');
+heightStyle143.textContent='.height-head143{font-size:17px;margin:19px 3px 8px;color:#6b3e19}'+
+  '.height-chosen143{background:#37764b;color:#fff7d0;border-color:#1d4f2d}';
+document.head.appendChild(heightStyle143);
+
 const css=document.createElement('style');css.textContent='.level-marker{display:inline-block;margin:0 auto 4px;padding:7px 12px;border-radius:30px;background:#efd1a4;color:#794518;font-size:12px;font-weight:900}.level-3{background:#ffb5a1;color:#8e2d1b}.level-2{background:#ffdc97}.level-1{background:#cce9b6;color:#335b25}.winner-select{width:52px;height:46px;font-size:22px}.modal-sheet .allocate-row strong{white-space:nowrap}.modal-sheet .allocate-list{max-height:52dvh;overflow:auto}';document.head.appendChild(css);
 };
 })();
