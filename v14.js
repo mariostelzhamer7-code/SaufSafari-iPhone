@@ -2,8 +2,8 @@
 'use strict';
 window.SaufSafariV14=function(){
 if(window.__saufsafari14)return;window.__saufsafari14=true;
-Object.assign(TR.de,{difficulty:'Schwierigkeit',easy:'Leicht',medium:'Mittel',hard:'Schwer',skipPlayer:'⏭ Spieler überspringen',duelStart:'⚔️ Sieger wählen',duelTitle:'⚔️ Wer hat gewonnen?',duelInfo:'Wähle den Sieger des Duells.',voteStart:'🗳️ Jetzt abstimmen',voteTitle:'🗳️ Gruppen-Abstimmung',voteInfo:'Stimmt nacheinander ab. Bis zum Ergebnis bleiben die Stimmen geheim.',votePerson:'ist an der Reihe',votePass:'Stimme auslassen',voteResult:'🏆 Abstimmungsergebnis',voteFinish:'🍻 Weiter zur Schluckverteilung',voteVotes:'Stimmen',voteDone:'Abstimmung abgeschlossen.',rule14t:'🎯 Schwierigkeit, Duelle & Abstimmungen',rule14:'Je schwieriger die Frage, desto mehr Schlucke. Bei Duellen wählst du den Gewinner; bei Gruppenfragen stimmen alle nacheinander ab. Spieler können eine Runde aussetzen.',version:'Version 1.4.2 · Created by MS'});
-Object.assign(TR.en,{difficulty:'Difficulty',easy:'Easy',medium:'Medium',hard:'Hard',skipPlayer:'⏭ Skip player',duelStart:'⚔️ Choose winner',duelTitle:'⚔️ Who won?',duelInfo:'Select the winner of the challenge.',voteStart:'🗳️ Start voting',voteTitle:'🗳️ Group vote',voteInfo:'Vote one by one. Choices stay private until the results.',votePerson:'is voting',votePass:'Skip vote',voteResult:'🏆 Voting result',voteFinish:'🍻 Continue to sip allocation',voteVotes:'votes',voteDone:'Voting complete.',rule14t:'🎯 Difficulty, duels & voting',rule14:'Harder challenges carry more sips. Choose a winner in duels, vote together on group questions, and skip a player for a round.',version:'Version 1.4.2 · Created by MS'});
+Object.assign(TR.de,{difficulty:'Schwierigkeit',easy:'Leicht',medium:'Mittel',hard:'Schwer',skipPlayer:'⏭ Spieler überspringen',duelStart:'⚔️ Sieger wählen',duelTitle:'⚔️ Wer hat gewonnen?',duelInfo:'Wähle den Sieger des Duells.',voteStart:'🗳️ Jetzt abstimmen',voteTitle:'🗳️ Gruppen-Abstimmung',voteInfo:'Stimmt nacheinander ab. Bis zum Ergebnis bleiben die Stimmen geheim.',votePerson:'ist an der Reihe',votePass:'Stimme auslassen',voteResult:'🏆 Abstimmungsergebnis',voteFinish:'🍻 Weiter zur Schluckverteilung',voteVotes:'Stimmen',voteDone:'Abstimmung abgeschlossen.',rule14t:'🎯 Schwierigkeit, Duelle & Abstimmungen',rule14:'Je schwieriger die Frage, desto mehr Schlucke. Bei Duellen wählst du den Gewinner; bei Gruppenfragen stimmen alle nacheinander ab. Spieler können eine Runde aussetzen.',version:'Version 1.4.3 · Created by MS'});
+Object.assign(TR.en,{difficulty:'Difficulty',easy:'Easy',medium:'Medium',hard:'Hard',skipPlayer:'⏭ Skip player',duelStart:'⚔️ Choose winner',duelTitle:'⚔️ Who won?',duelInfo:'Select the winner of the challenge.',voteStart:'🗳️ Start voting',voteTitle:'🗳️ Group vote',voteInfo:'Vote one by one. Choices stay private until the results.',votePerson:'is voting',votePass:'Skip vote',voteResult:'🏆 Voting result',voteFinish:'🍻 Continue to sip allocation',voteVotes:'votes',voteDone:'Voting complete.',rule14t:'🎯 Difficulty, duels & voting',rule14:'Harder challenges carry more sips. Choose a winner in duels, vote together on group questions, and skip a player for a round.',version:'Version 1.4.3 · Created by MS'});
 if(!Array.isArray(state.recentTopics))state.recentTopics=[];
 const add=(id,de,en,sex,diff,topic,opt={})=>{if(DATA.cards.some(c=>c[0]===id))return;DATA.cards.push([id,'Neue Runde',opt.task?'Aufgabe':'Frage',de,opt.min||2,!!opt.malePresent,!!opt.femalePresent,!!opt.male,!!opt.female,en,!!sex,diff,topic,!!opt.vote,!!opt.duel]);};
 const F=[
@@ -106,6 +106,73 @@ for(const card of DATA.cards){
     card[8]=true;card[7]=false;card[5]=true;
   }
 }
+
+// SHARED_BODY_143: Körpergrößen, Schuhgrößen und sechs neue Vergleiche in allen drei Modi.
+const HEIGHT_IDS_143=new Set([951,952,953,954,955,956,957]);
+const HEIGHT_RATE_143={951:3,952:3,953:2,954:2,955:2,956:3,957:2};
+const SHOE_TEXT_143={
+  761:['{spieler}, welche Schuhgröße vermutest du bei {ziel}? Nenne eine genaue Zahl!',
+       '{spieler}, what shoe size do you think {ziel} wears? Give an exact number!'],
+  703:['{spieler}, ordne alle Mitspieler von der kleinsten bis zur größten vermuteten Schuhgröße. Wer hat die größten Füße?',
+       '{spieler}, rank everyone from the smallest to the largest estimated shoe size. Who has the biggest feet?']
+};
+for(const c of DATA.cards){
+  if(HEIGHT_IDS_143.has(c[0])){
+    c[15]=true; c[5]=[954,956].includes(c[0]);c[6]=[955,956].includes(c[0]);
+  }
+  if(SHOE_TEXT_143[c[0]]){
+    c[3]=SHOE_TEXT_143[c[0]][0];c[9]=SHOE_TEXT_143[c[0]][1];
+    c[4]=2;c[5]=false;c[6]=false;c[7]=false;c[8]=false;
+    c[10]=false;c[11]=c[0]===703?2:1;c[12]='shoes';c[15]=true;
+  }
+  // Nicht noch zusätzliche geschlechtsspezifische Hintern-Rankings spielen.
+  if(c[0]===10){
+    c[3]='{spieler}, welcher Mann dieser Runde hat deiner Meinung nach die ausdrucksstärksten Augen?';
+    c[9]='{spieler}, which guy here has the most expressive eyes, in your opinion?';
+  }
+  if(c[0]===25){
+    c[3]='{spieler}, welche Frau dieser Runde hat deiner Meinung nach das ansteckendste Lächeln?';
+    c[9]='{spieler}, which woman here has the most contagious smile, in your opinion?';
+  }
+}
+const COMPARE_143=[
+  [1058,'{spieler}, wer aus der Runde hat deiner Meinung nach die längsten Beine? Entscheide dich für eine Person!',
+   '{spieler}, who here do you think has the longest legs? Pick one person!',2,'body',false],
+  [1059,'{spieler}, wer hat den größten Oberarmumfang? Alle schätzen zuerst – wer möchte, kann danach vergleichen!',
+   '{spieler}, who has the largest upper-arm circumference? Guess first; comparing afterwards is optional!',2,'body',false],
+  [1060,'{spieler}, welche Person dieser Runde hat deiner Meinung nach die verführerischsten Lippen?',
+   '{spieler}, who in this group do you think has the most seductive lips?',1,'body',false],
+  [1061,'{spieler}, wer würde einen Wettbewerb um den knackigsten Hintern gewinnen? Nenne genau eine Person!',
+   '{spieler}, who would win a contest for the best-looking backside? Name just one person!',2,'body',false],
+  [1062,'{spieler}, wer hat deiner Meinung nach die breitesten Schultern in dieser Runde?',
+   '{spieler}, who do you think has the broadest shoulders in this group?',2,'body',false],
+  [1063,'{spieler} gegen {ziel}: Setzt euch mit gestreckten Beinen hin und streckt die Hände Richtung Zehenspitzen. Wer kommt weiter? Nicht überdehnen!',
+   '{spieler} versus {ziel}: sit with your legs straight and reach towards your toes. Who gets further? Do not overstretch!',2,'duel',true]
+];
+for(const [id,de,en,difficulty,topic,duel] of COMPARE_143){
+  add(id,de,en,false,difficulty,topic,{duel,task:duel,min:2});
+  const c=DATA.cards.find(x=>x[0]===id);
+  if(c)c[15]=true;
+}
+const priorModeAllowed143=modeAllowed;
+modeAllowed=function(card){return card?.[15]===true||priorModeAllowed143(card);};
+function isHeight143(){return state.current?.type==='normal'&&HEIGHT_IDS_143.has(state.current.id);}
+Object.assign(TR.de,{
+  heightSelect143:'🍻 Betroffene auswählen',heightTitle143:'🍻 Körpergrößen-Aufgabe',
+  heightInfo143:'Wähle die passenden Personen. Die Schlucke werden erst nach Bestätigung gezählt.',
+  heightTall143:'Größte Person',heightShort143:'Kleinste Person',
+  heightTallMan143:'Größter Mann',heightShortWoman143:'Kleinste Frau',
+  heightAll143:'Betroffene Spieler',heightNone143:'Trifft auf niemanden zu? Dann ohne Auswahl bestätigen.',
+  heightEach143:'pro Person',heightSave143:'✓ Schlucke übernehmen'
+});
+Object.assign(TR.en,{
+  heightSelect143:'🍻 Choose recipients',heightTitle143:'🍻 Height challenge',
+  heightInfo143:'Select the appropriate players. Sips are only counted after confirmation.',
+  heightTall143:'Tallest player',heightShort143:'Shortest player',
+  heightTallMan143:'Tallest man',heightShortWoman143:'Shortest woman',
+  heightAll143:'Affected players',heightNone143:'Nobody qualifies? Confirm without a selection.',
+  heightEach143:'per person',heightSave143:'✓ Confirm sips'
+});
 
 // Zusätzliche Sicherung gegen wortgleiche Karten (auch bei künftigen Ergänzungen).
 function canonicalCard14(str){return String(str||'').toLocaleLowerCase('de').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/\{spieler\}|\{ziel2?\}|\{frau\}|\{mann\}/g,'{name}').replace(/[^\p{L}\p{N}{}]+/gu,' ').replace(/\s+/g,' ').trim();}
