@@ -11,7 +11,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="apple-touch-icon" sizes="180x180" href="./saufsafari-icon-180.png">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
-<title>SaufSafari 🦁 · Version 1.4</title>
+<title>SaufSafari 🦁 · Version 1.4.1</title>
 <style>
 :root{color-scheme:dark;--deep:#0b2315;--forest:#153c22;--leaf:#275934;--gold:#f8c44e;--orange:#ff9d20;--cream:#fff0c8;--muted:#c5d2b8;--brown:#793c20;--red:#e76c52;--shadow:0 18px 45px #00170e78}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -224,7 +224,7 @@ function btn(label,action,kind='secondary',extra=''){return `<button type="butto
 function panel(body,title=''){return `<section class="panel">${title?`<h3>${title}</h3>`:''}${body}</section>`;}
 function header(title,sub=''){return `<div class="hero compact"><div class="eyebrow">🦁 SAUFSAFARI</div><h2>${esc(title)}</h2>${sub?`<p class="lead">${esc(sub)}</p>`:''}</div>`;}
 function logo(size='big'){return `<img class="original-logo ${size}" src="${LOGO}" alt="SaufSafari Löwe" draggable="false">`;}
-function shell(content){$('screen').innerHTML=content+`<div class="foot">SAUFSAFARI · 1.4 · CREATED BY MS</div>`;renderModal();}
+function shell(content){$('screen').innerHTML=content+`<div class="foot">SAUFSAFARI · 1.4.1 · CREATED BY MS</div>`;renderModal();}
 function voiceSay(text,force=false){if(!('speechSynthesis' in window)||(!state.voice&&!force))return;try{speechSynthesis.cancel();const a=new SpeechSynthesisUtterance(text);const list=speechSynthesis.getVoices();const want=state.lang==='en'?['en-GB','en-US','en']:['de-AT','de-DE','de'];let v=null;for(const w of want){v=list.find(x=>x.lang===w)||list.find(x=>x.lang.startsWith(w));if(v)break;}if(v)a.voice=v;a.lang=v?.lang||(state.lang==='en'?'en-GB':'de-AT');a.rate=.91;a.pitch=1.02;speechSynthesis.speak(a);}catch(e){console.warn(e);}}
 function silence(){try{speechSynthesis.cancel();}catch(e){}}
 function stopTimer(){if(timerHandle)clearInterval(timerHandle);timerHandle=null;state.timer.run=false;}
