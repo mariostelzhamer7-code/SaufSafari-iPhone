@@ -155,6 +155,8 @@ const baseRenderRules=renderRules;
 renderRules=function(){return baseRenderRules().replace('<div class="stack space-top">',panel(`<p>${t('rule14')}</p>`,t('rule14t'))+'<div class="stack space-top">');};
 const baseHandle14=handle;
 handle=function(action,el){switch(action){case 'skipPlayer14':skipPlayer();return;case 'duelStart14':duelStart();return;case 'duelWinner14':duelWinner(el.dataset.id);return;case 'voteStart14':voteStart();return;case 'voteFor14':voteFor(el.dataset.id);return;case 'votePass14':voteFor(null);return;case 'voteFinish14':if(state.vote14&&state.vote14.index===state.vote14.voters.length)openDistribute('vote');return;default:return baseHandle14(action,el);}};
+// Refresh incompatible active card 240 after an app update, without losing turn or statistics.
+if(state.current?.type==='normal'&&state.current.id===240&&!state.current.closed&&curActor()?.gender!=='w')differentCard();
 const css=document.createElement('style');css.textContent='.level-marker{display:inline-block;margin:0 auto 4px;padding:7px 12px;border-radius:30px;background:#efd1a4;color:#794518;font-size:12px;font-weight:900}.level-3{background:#ffb5a1;color:#8e2d1b}.level-2{background:#ffdc97}.level-1{background:#cce9b6;color:#335b25}.winner-select{width:52px;height:46px;font-size:22px}.modal-sheet .allocate-row strong{white-space:nowrap}.modal-sheet .allocate-list{max-height:52dvh;overflow:auto}';document.head.appendChild(css);
 };
 })();
