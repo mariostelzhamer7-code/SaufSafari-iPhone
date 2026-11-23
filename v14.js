@@ -2,8 +2,8 @@
 'use strict';
 window.SaufSafariV14=function(){
 if(window.__saufsafari14)return;window.__saufsafari14=true;
-Object.assign(TR.de,{difficulty:'Schwierigkeit',easy:'Leicht',medium:'Mittel',hard:'Schwer',skipPlayer:'⏭ Spieler überspringen',duelStart:'⚔️ Sieger wählen',duelTitle:'⚔️ Wer hat gewonnen?',duelInfo:'Wähle den Sieger des Duells.',voteStart:'🗳️ Jetzt abstimmen',voteTitle:'🗳️ Gruppen-Abstimmung',voteInfo:'Stimmt nacheinander ab. Bis zum Ergebnis bleiben die Stimmen geheim.',votePerson:'ist an der Reihe',votePass:'Stimme auslassen',voteResult:'🏆 Abstimmungsergebnis',voteFinish:'🍻 Weiter zur Schluckverteilung',voteVotes:'Stimmen',voteDone:'Abstimmung abgeschlossen.',rule14t:'🎯 Schwierigkeit, Duelle & Abstimmungen',rule14:'Je schwieriger die Frage, desto mehr Schlucke. Bei Duellen wählst du den Gewinner; bei Gruppenfragen stimmen alle nacheinander ab. Spieler können eine Runde aussetzen.',version:'Version 1.4.3 · Created by MS'});
-Object.assign(TR.en,{difficulty:'Difficulty',easy:'Easy',medium:'Medium',hard:'Hard',skipPlayer:'⏭ Skip player',duelStart:'⚔️ Choose winner',duelTitle:'⚔️ Who won?',duelInfo:'Select the winner of the challenge.',voteStart:'🗳️ Start voting',voteTitle:'🗳️ Group vote',voteInfo:'Vote one by one. Choices stay private until the results.',votePerson:'is voting',votePass:'Skip vote',voteResult:'🏆 Voting result',voteFinish:'🍻 Continue to sip allocation',voteVotes:'votes',voteDone:'Voting complete.',rule14t:'🎯 Difficulty, duels & voting',rule14:'Harder challenges carry more sips. Choose a winner in duels, vote together on group questions, and skip a player for a round.',version:'Version 1.4.3 · Created by MS'});
+Object.assign(TR.de,{difficulty:'Schwierigkeit',easy:'Leicht',medium:'Mittel',hard:'Schwer',skipPlayer:'⏭ Spieler überspringen',duelStart:'⚔️ Sieger wählen',duelTitle:'⚔️ Wer hat gewonnen?',duelInfo:'Wähle den Sieger des Duells.',voteStart:'🗳️ Jetzt abstimmen',voteTitle:'🗳️ Gruppen-Abstimmung',voteInfo:'Stimmt nacheinander ab. Bis zum Ergebnis bleiben die Stimmen geheim.',votePerson:'ist an der Reihe',votePass:'Stimme auslassen',voteResult:'🏆 Abstimmungsergebnis',voteFinish:'🍻 Weiter zur Schluckverteilung',voteVotes:'Stimmen',voteDone:'Abstimmung abgeschlossen.',rule14t:'🎯 Schwierigkeit, Duelle & Abstimmungen',rule14:'Je schwieriger die Frage, desto mehr Schlucke. Bei Duellen wählst du den Gewinner; bei Gruppenfragen stimmen alle nacheinander ab. Spieler können eine Runde aussetzen.',version:'Version 1.4.4 · Created by MS'});
+Object.assign(TR.en,{difficulty:'Difficulty',easy:'Easy',medium:'Medium',hard:'Hard',skipPlayer:'⏭ Skip player',duelStart:'⚔️ Choose winner',duelTitle:'⚔️ Who won?',duelInfo:'Select the winner of the challenge.',voteStart:'🗳️ Start voting',voteTitle:'🗳️ Group vote',voteInfo:'Vote one by one. Choices stay private until the results.',votePerson:'is voting',votePass:'Skip vote',voteResult:'🏆 Voting result',voteFinish:'🍻 Continue to sip allocation',voteVotes:'votes',voteDone:'Voting complete.',rule14t:'🎯 Difficulty, duels & voting',rule14:'Harder challenges carry more sips. Choose a winner in duels, vote together on group questions, and skip a player for a round.',version:'Version 1.4.4 · Created by MS'});
 if(!Array.isArray(state.recentTopics))state.recentTopics=[];
 const add=(id,de,en,sex,diff,topic,opt={})=>{if(DATA.cards.some(c=>c[0]===id))return;DATA.cards.push([id,'Neue Runde',opt.task?'Aufgabe':'Frage',de,opt.min||2,!!opt.malePresent,!!opt.femalePresent,!!opt.male,!!opt.female,en,!!sex,diff,topic,!!opt.vote,!!opt.duel]);};
 const F=[
@@ -343,6 +343,123 @@ const heightStyle143=document.createElement('style');
 heightStyle143.textContent='.height-head143{font-size:17px;margin:19px 3px 8px;color:#6b3e19}'+
   '.height-chosen143{background:#37764b;color:#fff7d0;border-color:#1d4f2d}';
 document.head.appendChild(heightStyle143);
+
+// TURN_ORDER_144: Jeder aktive Spieler bekommt genau einen regulären Zug pro Runde.
+// Spieler-IDs statt Array-Indizes verhindern Verschiebungen bei Zu- und Abgängen.
+// Neue Mitspieler steigen erst beim Beginn der nächsten Runde ein.
+function turnState144(){
+  let q=state.turnOrder144;
+  if(!q||!Array.isArray(q.roster)||!q.roster.length||!Number.isInteger(q.slot)||!Number.isInteger(q.round)){
+    const roster=active().map(p=>p.id);
+    const actor=state.current?.personId;
+    let slot=roster.indexOf(actor);
+    if(slot<0)slot=Math.max(0,Math.floor(+state.turn||0))%Math.max(1,roster.length);
+    q={roster,slot,round:Math.floor(Math.max(0,+state.turn||0)/Math.max(1,roster.length))+1};
+    state.turnOrder144=q;
+  }
+  return q;
+}
+function advanceTurn144(){
+  const q=turnState144();
+  const max=active().length+q.roster.length+3;
+  for(let attempts=0;attempts<max;attempts++){
+    q.slot++;
+    if(q.slot>=q.roster.length){
+      q.roster=active().map(p=>p.id);
+      q.slot=0;
+      q.round++;
+    }
+    if(!q.roster.length)return null;
+    const candidate=q.roster[q.slot];
+    if(active().some(p=>p.id===candidate))return candidate;
+  }
+  return null;
+}
+const oldStartGame144=startGame;
+startGame=function(){
+  if(active().length>=2)state.turnOrder144={roster:active().map(p=>p.id),slot:0,round:1};
+  return oldStartGame144();
+};
+drawNormal=function(){
+  const players=active();
+  if(players.length<2){state.current=null;go('players');return;}
+  const used=new Set(state.used),q=turnState144();
+  let card=null,person=null;
+  const maxAttempts=players.length+q.roster.length+2;
+  for(let attempts=0;attempts<maxAttempts;attempts++){
+    const actor=active().find(p=>p.id===q.roster[q.slot]);
+    if(actor){
+      let candidates=DATA.cards.filter(c=>!used.has(c[0])&&modeAllowed(c)&&isEligible(c,actor));
+      if(candidates.length){
+        const recent=(state.recentTopics||[]).slice(-2);
+        const fresh=candidates.filter(c=>!recent.includes(topicOf(c)));
+        if(fresh.length)candidates=fresh;
+        const spicy=candidates.filter(c=>c[10]===true);
+        card=state.mode==='all'&&spicy.length&&Math.random()<.4?pick(spicy):pick(candidates);
+        person=actor;
+        break;
+      }
+    }
+    if(!advanceTurn144())break;
+  }
+  if(!card){state.current=null;go('game');return;}
+  state.used.push(card[0]);
+  const targets=chooseTargets(state.lang==='en'?card[9]:card[3],person);
+  state.current={cardKey:'N'+card[0],type:'normal',id:card[0],personId:person.id,targets,closed:false};
+  state.stage='card';state.modal=false;state.modalKind14=null;state.vote14=null;
+  prepareTimer(state.lang==='en'?card[9]:card[3],card[2]);
+  state.recentTopics.push(topicOf(card));state.recentTopics=state.recentTopics.slice(-3);
+  save();render();voiceCard();
+};
+drawSpecial=function(){
+  state.vote14=null;state.modalKind14=null;
+  const players=active();
+  if(players.length<2)return drawNormal();
+  const options=specialPool().filter(s=>
+    !state.usedSpecial.includes((s.enSpecial?'E':'D')+s.id)&&
+    (state.mode==='all'||(state.mode==='sex')===s.sex));
+  if(!options.length)return drawNormal();
+  const q=turnState144();
+  let person=players.find(p=>p.id===q.roster[q.slot]);
+  if(!person){advanceTurn144();person=active().find(p=>p.id===q.roster[q.slot]);}
+  if(!person)return drawNormal();
+  const special=pick(options),other=pick(players.filter(p=>p.id!==person.id));
+  state.usedSpecial.push((special.enSpecial?'E':'D')+special.id);
+  state.current={cardKey:'S'+special.id+(special.enSpecial?'E':'D'),
+    type:'special',id:special.id,personId:person.id,
+    targets:chooseTargets(special.de,person,other?.id),
+    enSpecial:special.enSpecial,closed:false};
+  state.stage='card';state.modal=false;
+  prepareTimer(special.de,'Aufgabe');
+  state.recentTopics.push('special');state.recentTopics=state.recentTopics.slice(-3);
+  save();render();voiceCard();
+};
+nextCard=function(){
+  stopTimer();silence();
+  state.turn=Math.max(0,+state.turn||0)+1;
+  advanceTurn144();
+  state.untilSpecial--;
+  if(state.untilSpecial<=0){
+    state.untilSpecial=3+Math.floor(Math.random()*4);
+    drawSpecial();
+  }else drawNormal();
+};
+differentCard=function(){stopTimer();silence();drawNormal();};
+const removePlayerBefore144=removePlayer;
+removePlayer=function(id){
+  const wasActive=findPlayer(id)?.active!==false&&!!findPlayer(id);
+  removePlayerBefore144(id);
+  if(wasActive&&findPlayer(id)?.active===false&&state.current?.personId===id)nextCard();
+};
+const renderGameBefore144=renderGame;
+renderGame=function(){
+  let html=renderGameBefore144();
+  if(!state.current)return html;
+  const oldRound=Math.floor(state.turn/Math.max(active().length,1))+1;
+  const prefix='<div class="eyebrow">'+t('round')+' ';
+  return html.replace(prefix+oldRound+' ·',prefix+turnState144().round+' ·');
+};
+if(state.current&&active().length>=2)turnState144();
 
 const css=document.createElement('style');css.textContent='.level-marker{display:inline-block;margin:0 auto 4px;padding:7px 12px;border-radius:30px;background:#efd1a4;color:#794518;font-size:12px;font-weight:900}.level-3{background:#ffb5a1;color:#8e2d1b}.level-2{background:#ffdc97}.level-1{background:#cce9b6;color:#335b25}.winner-select{width:52px;height:46px;font-size:22px}.modal-sheet .allocate-row strong{white-space:nowrap}.modal-sheet .allocate-list{max-height:52dvh;overflow:auto}';document.head.appendChild(css);
 };
