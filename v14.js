@@ -2,8 +2,8 @@
 'use strict';
 window.SaufSafariV14=function(){
 if(window.__saufsafari14)return;window.__saufsafari14=true;
-Object.assign(TR.de,{difficulty:'Schwierigkeit',easy:'Leicht',medium:'Mittel',hard:'Schwer',skipPlayer:'⏭ Spieler überspringen',duelStart:'⚔️ Sieger wählen',duelTitle:'⚔️ Wer hat gewonnen?',duelInfo:'Wähle den Sieger des Duells.',voteStart:'🗳️ Jetzt abstimmen',voteTitle:'🗳️ Gruppen-Abstimmung',voteInfo:'Stimmt nacheinander ab. Bis zum Ergebnis bleiben die Stimmen geheim.',votePerson:'ist an der Reihe',votePass:'Stimme auslassen',voteResult:'🏆 Abstimmungsergebnis',voteFinish:'🍻 Weiter zur Schluckverteilung',voteVotes:'Stimmen',voteDone:'Abstimmung abgeschlossen.',rule14t:'🎯 Schwierigkeit, Duelle & Abstimmungen',rule14:'Je schwieriger die Frage, desto mehr Schlucke. Bei Duellen wählst du den Gewinner; bei Gruppenfragen stimmen alle nacheinander ab. Spieler können eine Runde aussetzen.',version:'Version 1.4.1 · Created by MS'});
-Object.assign(TR.en,{difficulty:'Difficulty',easy:'Easy',medium:'Medium',hard:'Hard',skipPlayer:'⏭ Skip player',duelStart:'⚔️ Choose winner',duelTitle:'⚔️ Who won?',duelInfo:'Select the winner of the challenge.',voteStart:'🗳️ Start voting',voteTitle:'🗳️ Group vote',voteInfo:'Vote one by one. Choices stay private until the results.',votePerson:'is voting',votePass:'Skip vote',voteResult:'🏆 Voting result',voteFinish:'🍻 Continue to sip allocation',voteVotes:'votes',voteDone:'Voting complete.',rule14t:'🎯 Difficulty, duels & voting',rule14:'Harder challenges carry more sips. Choose a winner in duels, vote together on group questions, and skip a player for a round.',version:'Version 1.4.1 · Created by MS'});
+Object.assign(TR.de,{difficulty:'Schwierigkeit',easy:'Leicht',medium:'Mittel',hard:'Schwer',skipPlayer:'⏭ Spieler überspringen',duelStart:'⚔️ Sieger wählen',duelTitle:'⚔️ Wer hat gewonnen?',duelInfo:'Wähle den Sieger des Duells.',voteStart:'🗳️ Jetzt abstimmen',voteTitle:'🗳️ Gruppen-Abstimmung',voteInfo:'Stimmt nacheinander ab. Bis zum Ergebnis bleiben die Stimmen geheim.',votePerson:'ist an der Reihe',votePass:'Stimme auslassen',voteResult:'🏆 Abstimmungsergebnis',voteFinish:'🍻 Weiter zur Schluckverteilung',voteVotes:'Stimmen',voteDone:'Abstimmung abgeschlossen.',rule14t:'🎯 Schwierigkeit, Duelle & Abstimmungen',rule14:'Je schwieriger die Frage, desto mehr Schlucke. Bei Duellen wählst du den Gewinner; bei Gruppenfragen stimmen alle nacheinander ab. Spieler können eine Runde aussetzen.',version:'Version 1.4.2 · Created by MS'});
+Object.assign(TR.en,{difficulty:'Difficulty',easy:'Easy',medium:'Medium',hard:'Hard',skipPlayer:'⏭ Skip player',duelStart:'⚔️ Choose winner',duelTitle:'⚔️ Who won?',duelInfo:'Select the winner of the challenge.',voteStart:'🗳️ Start voting',voteTitle:'🗳️ Group vote',voteInfo:'Vote one by one. Choices stay private until the results.',votePerson:'is voting',votePass:'Skip vote',voteResult:'🏆 Voting result',voteFinish:'🍻 Continue to sip allocation',voteVotes:'votes',voteDone:'Voting complete.',rule14t:'🎯 Difficulty, duels & voting',rule14:'Harder challenges carry more sips. Choose a winner in duels, vote together on group questions, and skip a player for a round.',version:'Version 1.4.2 · Created by MS'});
 if(!Array.isArray(state.recentTopics))state.recentTopics=[];
 const add=(id,de,en,sex,diff,topic,opt={})=>{if(DATA.cards.some(c=>c[0]===id))return;DATA.cards.push([id,'Neue Runde',opt.task?'Aufgabe':'Frage',de,opt.min||2,!!opt.malePresent,!!opt.femalePresent,!!opt.male,!!opt.female,en,!!sex,diff,topic,!!opt.vote,!!opt.duel]);};
 const F=[
@@ -96,6 +96,17 @@ const QUESTION_FIXES14={
 922:['{spieler}, beschreibe ein Land nur mit drei Geräuschen. Kann {ziel} es erraten?','{spieler}, describe a country using only three sounds. Can {ziel} guess it?']
 };
 for(const c of DATA.cards){const fix=QUESTION_FIXES14[c[0]];if(fix){c[3]=fix[0];c[9]=fix[1];}}
+// GENDER_FIX_142: Personenbezogene Männer-Schätzfragen nur für Spielerinnen.
+// Die alte, inhaltlich gleiche Karte 8 bekommt eine eigenständige Frage.
+for(const card of DATA.cards){
+  if(card[0]===240){card[8]=true;card[7]=false;card[5]=true;}
+  if(card[0]===8){
+    card[3]='{spieler}, welchem männlichen Mitspieler traust du am ehesten zu, eine richtig versaute Sprachnachricht aus Versehen in den Familienchat zu schicken?';
+    card[9]='{spieler}, which guy here is most likely to accidentally send a very naughty voice message to the family group chat?';
+    card[8]=true;card[7]=false;card[5]=true;
+  }
+}
+
 // Zusätzliche Sicherung gegen wortgleiche Karten (auch bei künftigen Ergänzungen).
 function canonicalCard14(str){return String(str||'').toLocaleLowerCase('de').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/\{spieler\}|\{ziel2?\}|\{frau\}|\{mann\}/g,'{name}').replace(/[^\p{L}\p{N}{}]+/gu,' ').replace(/\s+/g,' ').trim();}
 const seenCards14=new Set(),hiddenDuplicates14=new Set();
