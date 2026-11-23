@@ -125,6 +125,13 @@ for(const c of DATA.cards){
     c[4]=2;c[5]=false;c[6]=false;c[7]=false;c[8]=false;
     c[10]=false;c[11]=c[0]===703?2:1;c[12]='shoes';c[15]=true;
   }
+  // HEIGHT_ESTIMATE_144: Körpergröße einer beliebigen Person in allen drei Modi schätzen.
+  if(c[0]===708){
+    c[3]='{spieler}, wie groß schätzt du {ziel} in Zentimetern? Nenne eine genaue Zahl!';
+    c[9]='{spieler}, how tall do you think {ziel} is in centimetres? Give an exact number!';
+    c[4]=2;c[5]=false;c[6]=false;c[7]=false;c[8]=false;
+    c[10]=false;c[11]=2;c[12]='height';c[15]=true;
+  }
   // Nicht noch zusätzliche geschlechtsspezifische Hintern-Rankings spielen.
   if(c[0]===10){
     c[3]='{spieler}, welcher Mann dieser Runde hat deiner Meinung nach die ausdrucksstärksten Augen?';
